@@ -12,12 +12,9 @@ router.get('/', function (req, res, next) {
 
 
 //----------------API---------------------------
-let json = {}
 
 router.get('/api/getUsers', async (req, res, next) => {
     let all = await pool.query('Select * from usuarios')
-    json = all.rows
-    // console.log(json)
     res.json(all.rows)
 })
 
@@ -28,22 +25,38 @@ router.get('/api/obtenerPuestos', async (req, res, next) => {
                                     join persona pe
                                     on(co.id_persona= pe.id)
                                     where pe.dueno='V'`)
-    json = all.rows
-    // console.log(json)
     res.json(all.rows)
 })
 router.get('/api/obtenerSectores', async (req, res, next) => {
     let all = await pool.query(`select * from sector`)
-    json = all.rows
-    // console.log(json)
     res.json(all.rows)
 })
 router.get('/api/obtenerPuesto/:id', async (req, res, next) => {
     let all = await pool.query(`select * from puesto where id=${req.params.id}`)
-    json = all.rows
-    // console.log(json)
+    res.json(all.rows)
+})
+
+router.get('/api/obtenerPersonas/:puesto', async (req, res, next) => {
+    let all = await pool.query(`select pe.id,pe.nombre || ' ' || pe.apaterno || ' ' || pe.amaterno as nombre, pe.telefono, pe.dueno, pe.encargado
+                                from persona pe inner join contrato c
+                                on(pe.id = c.id_persona)
+                                join puesto pu
+                                on(c.id_puesto = pu.id)
+                                where pu.id = ${req.params.puesto}`)
+    res.json(all.rows)
+})
+
+router.get('/api/obtenerVendedor/:puesto', async (req, res, next) => {
+    let all = await pool.query(`select pe.id, pe.nombre || ' ' || pe.apaterno || ' ' || pe.amaterno as nombre, pe.telefono, 'Vendedor' as cargo
+                                from persona pe inner join contrato c
+                                on(pe.id = c.id_persona)
+                                join puesto pu
+                                on(c.id_puesto = pu.id)
+                                join vendedor v
+                                on (v.id_persona = pe.id)
+                                where pu.id = ${req.params.puesto}`)
     res.json(all.rows)
 })
 
 
-module.exports = router, json
+module.exports = router
