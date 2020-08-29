@@ -19,12 +19,14 @@ router.get('/api/getUsers', async (req, res, next) => {
 })
 
 router.get('/api/obtenerPuestos', async (req, res, next) => {
-    let all = await pool.query(`select pu.id as idPuesto, pu.nombre, pu.idSector as idSector, pe.nombre || ' ' || pe.apaterno  || ' ' || pe.amaterno as "dueno",'true' as estado
-                                from puesto pu inner join contrato co
-                                    on(pu.id = co.id_puesto )
-                                    join persona pe
-                                    on(co.id_persona= pe.id)
-                                    where pe.dueno='V'`)
+    let all = await pool.query(`select pu.id as idPuesto, pu.nombre, pu.idSector as idSector, pe.nombre || ' ' || pe.apaterno  || ' ' || pe.amaterno as "dueno",cu.deuda
+                                    from puesto pu inner join contrato co
+                                        on(pu.id = co.id_puesto )
+                                        join persona pe
+                                        on(co.id_persona= pe.id)
+                                        join cuenta cu
+                                        on(cu.idpuesto = pu.id)
+                                        where pe.dueno='V'`)
     res.json(all.rows)
 })
 router.get('/api/obtenerSectores', async (req, res, next) => {
@@ -55,6 +57,24 @@ router.get('/api/obtenerVendedor/:puesto', async (req, res, next) => {
                                 join vendedor v
                                 on (v.id_persona = pe.id)
                                 where pu.id = ${req.params.puesto}`)
+    res.json(all.rows)
+})
+
+router.get('/api/obtenerGuardias/:sector', async (req, res, next) => {
+    let all = await pool.query(`select * from guardia where idsector=${req.params.sector}`)
+    res.json(all.rows)
+})
+router.get('/api/reporte1', async (req, res, next) => {
+    let all = await pool.query(`select pe.nombre || ' ' || pe.apaterno  || ' ' || pe.amaterno as "dueno", pu.nombre as "puesto", se.nombre as "sector", cu.deuda 
+                                    from puesto pu inner join contrato co
+                                    on(pu.id = co.id_puesto )
+                                    join persona pe
+                                    on(co.id_persona= pe.id)
+                                    join cuenta cu
+                                    on(cu.idpuesto = pu.id)
+                                    join sector se
+                                    on(pu.idsector = se.id)
+                                    where pe.dueno='V'`)
     res.json(all.rows)
 })
 
